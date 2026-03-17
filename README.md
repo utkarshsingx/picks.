@@ -92,6 +92,30 @@ Frontend runs at `http://localhost:3000`.
 - Swagger API documentation
 - Dark-themed responsive UI
 
+## Phase 3 Features
+
+- **Casino games:** Dice, Mines, Plinko, Crash
+- **Live sports:** Sportsbook with The Odds API (NFL, NBA, NHL, MLB, soccer, etc.)
+- **Bet flow:** Debit wallet on bet, credit on win; BET/WIN transactions
+- **Dice:** Over/under target, instant resolution
+- **Mines:** 5x5 grid, reveal tiles, cash out anytime
+- **Plinko:** Risk levels (low/medium/high), instant resolution
+- **Crash:** Provably fair, real-time multiplier via WebSocket (Django Channels)
+- **Bet history:** Paginated list of user bets
+- **WebSocket:** `ws://host/ws/crash/{round_id}/?token=<jwt>` for live Crash multiplier
+
+### Running Crash (requires round scheduler)
+
+```bash
+# Terminal 1: Start backend with daphne (WebSocket support)
+cd backend && daphne -b 0.0.0.0 -p 8000 config.asgi:application
+
+# Terminal 2: Run Crash round scheduler (broadcasts multiplier)
+cd backend && python manage.py run_crash_rounds
+```
+
+For Redis in production, set `USE_REDIS=true` and `REDIS_URL`.
+
 ## Phase 2 Features
 
 - Multi-currency wallets (BTC, ETH, USDT, USD)
