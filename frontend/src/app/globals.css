@@ -47,3 +47,10 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
 }
+
+/* Restore number input spinner arrows (Tailwind preflight hides them) */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  opacity: 1;
+  height: 100%;
+}
