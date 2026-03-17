@@ -8,18 +8,30 @@ export function Footer() {
           <p className="text-sm text-muted-foreground">
             © {new Date().getFullYear()} picks. All rights reserved.
           </p>
-          <div className="flex gap-6">
+          <div className="flex flex-wrap justify-center gap-6">
             <Link
-              href="/help"
+              href="/support"
               className="text-sm text-muted-foreground hover:text-foreground"
             >
-              Help
+              Support
             </Link>
             <Link
-              href="/terms"
+              href="/privacy-policy"
               className="text-sm text-muted-foreground hover:text-foreground"
             >
-              Terms
+              Privacy Policy
+            </Link>
+            <Link
+              href="/terms-of-service"
+              className="text-sm text-muted-foreground hover:text-foreground"
+            >
+              Terms of Service
+            </Link>
+            <Link
+              href="/cancellation"
+              className="text-sm text-muted-foreground hover:text-foreground"
+            >
+              Cancellation & Refund
             </Link>
           </div>
         </div>
