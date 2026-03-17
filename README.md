@@ -54,7 +54,14 @@ picks/
    python manage.py runserver
    ```
 
-Backend runs at `http://localhost:8000`. API docs at `http://localhost:8000/api/docs/`.
+Backend runs at `http://localhost:8000`.
+
+**API documentation (Swagger):**
+- Swagger UI: `http://localhost:8000/api/docs/`
+- ReDoc: `http://localhost:8000/api/redoc/`
+- OpenAPI schema: `http://localhost:8000/api/schema/`
+
+Use the **Authorize** button in Swagger UI to add your JWT token for testing protected endpoints.
 
 ### Frontend
 
@@ -85,6 +92,17 @@ Frontend runs at `http://localhost:3000`.
 - Swagger API documentation
 - Dark-themed responsive UI
 
+## Phase 2 Features
+
+- Multi-currency wallets (BTC, ETH, USDT, USD)
+- Atomic balance operations with transaction.atomic()
+- Crypto deposits via NowPayments
+- Fiat deposits via Stripe
+- Withdrawal flow with configurable auto-approval limit
+- Admin approval queue for large withdrawals
+- Paginated transaction history
+- Webhook handlers for payment confirmation
+
 ## Environment Variables
 
 ### Backend (`.env`)
@@ -97,9 +115,17 @@ Frontend runs at `http://localhost:3000`.
 | `CORS_ALLOWED_ORIGINS` | Frontend origin (e.g. http://localhost:3000) |
 | `FRONTEND_URL` | Frontend URL for email links |
 | `EMAIL_BACKEND` | Email backend (console for dev) |
+| `WITHDRAWAL_AUTO_APPROVE_LIMIT_USD` | Auto-approve withdrawals below this (default 500) |
+| `WITHDRAWAL_MIN_AMOUNT_USD` | Minimum withdrawal (default 10) |
+| `NOWPAYMENTS_API_KEY` | NowPayments API key (crypto) |
+| `NOWPAYMENTS_IPN_SECRET` | NowPayments webhook secret |
+| `STRIPE_SECRET_KEY` | Stripe secret key (fiat) |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook secret |
+| `BACKEND_URL` | Backend URL for webhooks (e.g. http://localhost:8000) |
 
 ### Frontend (`.env.local`)
 
 | Variable | Description |
 |----------|-------------|
 | `NEXT_PUBLIC_API_URL` | Backend API URL (e.g. http://localhost:8000/api) |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key for card form |
