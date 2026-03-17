@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'drf_spectacular',
     'users',
+    'wallets',
 ]
 
 MIDDLEWARE = [
@@ -126,9 +127,59 @@ EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.conso
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@picks.dev')
 FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
 
-# drf-spectacular
+# Wallets
+WITHDRAWAL_AUTO_APPROVE_LIMIT_USD = float(os.environ.get('WITHDRAWAL_AUTO_APPROVE_LIMIT_USD', 500))
+WITHDRAWAL_MIN_AMOUNT_USD = float(os.environ.get('WITHDRAWAL_MIN_AMOUNT_USD', 10))
+
+# Payment gateways (optional)
+NOWPAYMENTS_API_KEY = os.environ.get('NOWPAYMENTS_API_KEY')
+NOWPAYMENTS_IPN_SECRET = os.environ.get('NOWPAYMENTS_IPN_SECRET')
+NOWPAYMENTS_SANDBOX = os.environ.get('NOWPAYMENTS_SANDBOX', 'true').lower() == 'true'
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
+STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY')
+STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET')
+BACKEND_URL = os.environ.get('BACKEND_URL', 'http://localhost:8000')
+
+# drf-spectacular / Swagger API docs
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Picks API',
-    'DESCRIPTION': 'Betting platform API',
+    'DESCRIPTION': '''
+# Picks Betting Platform API
+
+REST API for the Picks betting platform. Covers authentication, wallets, deposits, withdrawals, and transaction history.
+
+## Authentication
+
+Most endpoints require JWT authentication. Use `POST /api/auth/login/` with email and password to obtain an access token, then include it in the `Authorization` header:
+
+```
+Authorization: Bearer <access_token>
+```
+
+Use the **Authorize** button in Swagger UI to set your token for all requests.
+
+## Base URL
+
+- Development: `http://localhost:8000/api`
+- Production: Set via your deployment environment
+''',
     'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SCHEMA_PATH_PREFIX': r'/api/',
+    'TAGS': [
+        {'name': 'auth', 'description': 'Authentication & identity management'},
+        {'name': 'wallets', 'description': 'Wallet balances, deposits, withdrawals, transactions'},
+    ],
+    'SECURITY': [{'BearerAuth': []}],
+    'APPEND_COMPONENTS': {
+        'securitySchemes': {
+            'BearerAuth': {
+                'type': 'http',
+                'scheme': 'bearer',
+                'bearerFormat': 'JWT',
+                'description': 'JWT access token from login',
+            },
+        },
+    },
 }
