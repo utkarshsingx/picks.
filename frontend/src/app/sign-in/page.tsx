@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,11 @@ import { api } from "@/lib/api";
 export default function SignInPage() {
   const router = useRouter();
   const setAuth = useAuthStore((s) => s.setAuth);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
+  useEffect(() => {
+    if (isAuthenticated) router.replace("/dashboard");
+  }, [isAuthenticated, router]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
@@ -71,6 +76,8 @@ export default function SignInPage() {
       setLoading(false);
     }
   }
+
+  if (isAuthenticated) return null;
 
   return (
     <div className="flex min-h-[calc(100vh-7rem)] items-center justify-center px-4">

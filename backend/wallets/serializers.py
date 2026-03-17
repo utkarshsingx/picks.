@@ -48,3 +48,9 @@ class WithdrawSerializer(serializers.Serializer):
     currency = serializers.CharField()
     amount = serializers.DecimalField(max_digits=20, decimal_places=8, min_value=Decimal('0.00000001'))
     destination_address = serializers.CharField(required=False, allow_blank=True)
+
+
+class VaultMoveSerializer(serializers.Serializer):
+    currency = serializers.ChoiceField(choices=['BTC', 'ETH', 'USDT', 'USD'])
+    amount = serializers.DecimalField(max_digits=20, decimal_places=8, min_value=Decimal('0.00000001'))
+    direction = serializers.ChoiceField(choices=['to_vault', 'from_vault'])

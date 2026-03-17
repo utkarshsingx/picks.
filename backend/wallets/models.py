@@ -30,6 +30,7 @@ class Wallet(models.Model):
         related_name='wallets',
     )
     balance = models.DecimalField(max_digits=20, decimal_places=8, default=Decimal('0'))
+    vault_balance = models.DecimalField(max_digits=20, decimal_places=8, default=Decimal('0'))
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -15,7 +15,7 @@ def get_or_create_wallet(user_id: int, currency_code: str) -> Wallet:
     wallet, _ = Wallet.objects.get_or_create(
         user_id=user_id,
         currency=currency,
-        defaults={'balance': Decimal('0')},
+        defaults={'balance': Decimal('0'), 'vault_balance': Decimal('0')},
     )
     return wallet
 
@@ -79,10 +79,32 @@ def debit_wallet(
     return tx
 
 
-def get_balances(user_id: int) -> dict[str, Decimal]:
-    """Return dict of currency_code -> balance for user."""
+def get_balances(user_id: int) -> dict[str, tuple[Decimal, Decimal]]:
+    """Return dict of currency_code -> (balance, vault_balance) for user."""
     wallets = Wallet.objects.filter(user_id=user_id).select_related('currency')
-    return {w.currency.code: w.balance for w in wallets}
+    return {w.currency.code: (w.balance, w.vault_balance) for w in wallets}
+
+
+def vault_move(user_id: int, currency_code: str, amount: Decimal, direction: str) -> None:
+    """Move amount between wallet and vault. direction: 'to_vault' or 'from_vault'."""
+    if amount <= 0:
+        raise ValueError('Amount must be positive')
+    with transaction.atomic():
+        wallet = get_or_create_wallet(user_id, currency_code)
+        wallet = Wallet.objects.select_for_update().get(pk=wallet.pk)
+        if direction == 'to_vault':
+            if wallet.balance < amount:
+                raise ValueError(f'Insufficient balance: {wallet.balance} < {amount}')
+            wallet.balance -= amount
+            wallet.vault_balance += amount
+        elif direction == 'from_vault':
+            if wallet.vault_balance < amount:
+                raise ValueError(f'Insufficient vault balance: {wallet.vault_balance} < {amount}')
+            wallet.vault_balance -= amount
+            wallet.balance += amount
+        else:
+            raise ValueError("direction must be 'to_vault' or 'from_vault'")
+        wallet.save()
 
 
 def get_or_create_all_wallets(user_id: int) -> list[Wallet]:
@@ -93,7 +115,7 @@ def get_or_create_all_wallets(user_id: int) -> list[Wallet]:
         wallet, _ = Wallet.objects.get_or_create(
             user_id=user_id,
             currency=currency,
-            defaults={'balance': Decimal('0')},
+            defaults={'balance': Decimal('0'), 'vault_balance': Decimal('0')},
         )
         wallets.append(wallet)
     return wallets

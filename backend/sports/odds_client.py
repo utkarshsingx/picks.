@@ -148,6 +148,47 @@ def get_event_odds(
         return None, None
 
 
+def search_events(q: str, limit: int = 20) -> list[dict[str, Any]]:
+    """
+    Search events by team/event name across in-season sports.
+    Uses get_events (0 credits per sport). Returns up to `limit` matches.
+    """
+    key = _get_api_key()
+    if not key or not (q or '').strip():
+        return []
+    q_lower = q.strip().lower()
+    if len(q_lower) < 2:
+        return []
+    sports = get_sports()
+    # Filter to main event sports (exclude outrights like super bowl winner)
+    sport_keys = [
+        s['key'] for s in sports
+        if s.get('active') and not s.get('has_outrights', False)
+    ][:15]  # Limit sports to avoid too many API calls
+    results = []
+    for sport_key in sport_keys:
+        if len(results) >= limit:
+            break
+        try:
+            events = get_events(sport_key)
+            for ev in events:
+                if len(results) >= limit:
+                    break
+                home = (ev.get('home_team') or '').lower()
+                away = (ev.get('away_team') or '').lower()
+                if q_lower in home or q_lower in away:
+                    results.append({
+                        'id': ev.get('id'),
+                        'sport_key': sport_key,
+                        'home_team': ev.get('home_team'),
+                        'away_team': ev.get('away_team'),
+                        'commence_time': ev.get('commence_time'),
+                    })
+        except Exception:
+            continue
+    return results[:limit]
+
+
 def get_scores(
     sport_key: str,
     days_from: int = 1,

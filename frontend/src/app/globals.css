@@ -38,14 +38,20 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: "Neue Haas Grotesk Display Pro", system-ui, sans-serif;
+  --font-display: "Bebas Neue", sans-serif;
+  --font-family-sans: var(--font-sans);
+  --font-family-display: var(--font-display);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), system-ui, sans-serif;
+  font-family: var(--font-sans);
+}
+
+.font-display {
+  font-family: var(--font-display);
 }
 
 /* Restore number input spinner arrows (Tailwind preflight hides them) */

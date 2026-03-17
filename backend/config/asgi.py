@@ -13,7 +13,8 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django_asgi_app = get_asgi_application()
 
 from django.conf import settings
-from games.routing import websocket_urlpatterns
+from games.routing import websocket_urlpatterns as games_ws
+from chat.routing import websocket_urlpatterns as chat_ws
 
 # Allow WebSocket from frontend origin (localhost, FRONTEND_URL, CORS origins, production)
 _ws_origins = [
@@ -28,7 +29,7 @@ _ws_origins.extend(getattr(settings, "CORS_ALLOWED_ORIGINS", []))
 _ws_origins = list(dict.fromkeys(o.rstrip("/") for o in _ws_origins if o))
 
 websocket_app = OriginValidator(
-    URLRouter(websocket_urlpatterns),
+    URLRouter(games_ws + chat_ws),
     _ws_origins,
 )
 

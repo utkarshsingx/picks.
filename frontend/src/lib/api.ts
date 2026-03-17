@@ -81,6 +81,8 @@ export const wallets = {
     api.post("/wallets/deposit/fiat/", { amount_usd }),
   withdraw: (currency: string, amount: number, destination_address?: string) =>
     api.post("/wallets/withdraw/", { currency, amount, destination_address }),
+  vaultMove: (currency: string, amount: number, direction: "to_vault" | "from_vault") =>
+    api.post("/wallets/vault/move/", { currency, amount, direction }),
 };
 
 export const games = {
@@ -143,8 +145,15 @@ export const kyc = {
   },
 };
 
+export const chat = {
+  getMessages: (room = "lobby", limit = 50) =>
+    api.get(`/chat/messages/?room=${encodeURIComponent(room)}&limit=${limit}`),
+};
+
 export const sports = {
   getSports: () => api.get("/sports/"),
+  search: (q: string) =>
+    api.get(`/sports/search/?q=${encodeURIComponent(q)}`),
   getEvents: (sportKey: string, includeOdds?: boolean) =>
     api.get(
       `/sports/${sportKey}/events/` +

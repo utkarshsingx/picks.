@@ -8,4 +8,5 @@ urlpatterns = [
     path('deposit/crypto/', views.deposit_crypto),
     path('deposit/fiat/', views.deposit_fiat),
     path('withdraw/', views.withdraw),
+    path('vault/move/', views.vault_move_view),
 ]

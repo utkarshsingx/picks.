@@ -27,3 +27,4 @@ out/
 # OS
 .DS_Store
 requirements.md
+frontend/.nvmrc

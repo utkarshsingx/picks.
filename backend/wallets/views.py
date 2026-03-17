@@ -15,9 +15,10 @@ from .serializers import (
     DepositCryptoSerializer,
     DepositFiatSerializer,
     TransactionSerializer,
+    VaultMoveSerializer,
     WithdrawSerializer,
 )
-from .services import credit_wallet, debit_wallet, get_balances, get_or_create_all_wallets
+from .services import credit_wallet, debit_wallet, get_balances, get_or_create_all_wallets, vault_move
 
 
 class TransactionPagination(PageNumberPagination):
@@ -58,13 +59,21 @@ def balances(request):
     balances_dict = get_balances(user_id)
     currencies = {c.code: c for c in Currency.objects.all()}
     result = []
-    for code, bal in sorted(balances_dict.items()):
+    for code, (bal, vault_bal) in sorted(balances_dict.items()):
         dec = currencies.get(code, Currency()).decimals if code in currencies else 8
         try:
             disp = f"{float(bal):.{dec}f}".rstrip('0').rstrip('.') or '0'
+            vault_disp = f"{float(vault_bal):.{dec}f}".rstrip('0').rstrip('.') or '0'
         except (ValueError, TypeError):
             disp = str(bal)
-        result.append({'currency': code, 'balance': str(bal), 'balance_display': disp})
+            vault_disp = str(vault_bal)
+        result.append({
+            'currency': code,
+            'balance': str(bal),
+            'balance_display': disp,
+            'vault_balance': str(vault_bal),
+            'vault_balance_display': vault_disp,
+        })
     return Response({'balances': result})
 
 
@@ -248,5 +257,28 @@ def withdraw(request):
                     metadata={'destination_address': destination_address, 'requires_approval': True} if destination_address else {'requires_approval': True},
                 )
             return Response(TransactionSerializer(tx).data)
+    except ValueError as e:
+        return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@extend_schema(
+    tags=['wallets'],
+    summary='Move between wallet and vault',
+    description='Move funds to or from vault (savings).',
+    request=VaultMoveSerializer,
+    responses={200: {'description': 'Success'}, 400: {'description': 'Validation or insufficient balance'}},
+)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def vault_move_view(request):
+    """Move amount between wallet and vault."""
+    serializer = VaultMoveSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    currency = serializer.validated_data['currency'].upper()
+    amount = serializer.validated_data['amount']
+    direction = serializer.validated_data['direction']
+    try:
+        vault_move(request.user.id, currency, amount, direction)
+        return Response({'detail': 'Success'})
     except ValueError as e:
         return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)

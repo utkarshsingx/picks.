@@ -17,8 +17,31 @@ from .odds_client import (
     get_sports,
     get_odds,
     get_event_odds,
+    search_events,
 )
 from .serializers import SportsBetSerializer
+
+
+@extend_schema(
+    tags=['sports'],
+    summary='Search events',
+    parameters=[OpenApiParameter('q', str, description='Search query (team or event name)')],
+    responses={200: {'type': 'array', 'items': {'type': 'object'}}},
+)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def sports_search(request):
+    """Search sports events by team/event name. GET /api/sports/search/?q=..."""
+    q = request.query_params.get('q', '').strip()
+    if not q:
+        return Response([], status=status.HTTP_200_OK)
+    if not settings.ODDS_API_KEY:
+        return Response(
+            {'detail': 'Odds API not configured. Set ODDS_API_KEY.'},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+    results = search_events(q, limit=20)
+    return Response(results, status=status.HTTP_200_OK)
 
 
 @extend_schema(

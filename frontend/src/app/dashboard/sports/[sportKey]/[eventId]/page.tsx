@@ -15,6 +15,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { sports } from "@/lib/api";
+import { useBetSlipStore } from "@/store/bet-slip-store";
 
 interface Outcome {
   name: string;
@@ -67,6 +68,7 @@ export default function EventDetailPage() {
   } | null>(null);
   const [betting, setBetting] = useState(false);
   const [lastBet, setLastBet] = useState<unknown>(null);
+  const addPick = useBetSlipStore((s) => s.addPick);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -258,13 +260,42 @@ export default function EventDetailPage() {
                       edge applied)
                     </p>
                   )}
-                  <Button
-                    type="submit"
-                    disabled={betting || !amount || parseFloat(amount) <= 0}
-                    className="w-full"
-                  >
-                    {betting ? "Placing..." : "Place Bet"}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="flex-1"
+                      disabled={!amount || parseFloat(amount) <= 0}
+                      onClick={() => {
+                        if (!selected || !event) return;
+                        const amt = parseFloat(amount);
+                        if (amt <= 0) return;
+                        addPick({
+                          event_id: eventId,
+                          sport_key: sportKey,
+                          market_key: selected.market_key,
+                          outcome_name: selected.outcome_name,
+                          odds: selected.odds,
+                          point: selected.point,
+                          home_team: event.home_team,
+                          away_team: event.away_team,
+                          amount: amt,
+                          currency,
+                        });
+                        setSelected(null);
+                        setAmount("");
+                      }}
+                    >
+                      Add to bet slip
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={betting || !amount || parseFloat(amount) <= 0}
+                      className="flex-1"
+                    >
+                      {betting ? "Placing..." : "Place Bet"}
+                    </Button>
+                  </div>
                 </CardContent>
               </form>
             </Card>

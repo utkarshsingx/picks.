@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'sports',
     'channels',
     'kyc',
+    'chat',
 ]
 
 MIDDLEWARE = [
@@ -82,11 +83,10 @@ CHANNEL_LAYERS = {
 }
 
 _db_url = os.environ.get('DATABASE_URL')
+if not _db_url or not str(_db_url).strip():
+    _db_url = 'sqlite:///db.sqlite3'
 DATABASES = {
-    'default': dj_database_url.config(
-        default=_db_url or 'sqlite:///db.sqlite3',
-        conn_max_age=600,
-    )
+    'default': dj_database_url.parse(_db_url, conn_max_age=600)
 }
 
 AUTH_USER_MODEL = 'users.User'
