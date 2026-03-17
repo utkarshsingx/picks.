@@ -59,3 +59,26 @@ export const api = {
     apiFetch(path, { method: "PUT", body: JSON.stringify(body) }),
   delete: (path: string) => apiFetch(path, { method: "DELETE" }),
 };
+
+export const wallets = {
+  getBalances: () => api.get("/wallets/balances/"),
+  getTransactions: (params?: Record<string, string> | string) => {
+    if (typeof params === "string") {
+      const url = new URL(params);
+      const path = url.pathname.replace(/^\/api/, "") + url.search;
+      return apiFetch(path || "/wallets/transactions/");
+    }
+    return apiFetch(
+      "/wallets/transactions/" +
+        (params && Object.keys(params).length
+          ? "?" + new URLSearchParams(params).toString()
+          : "")
+    );
+  },
+  depositCrypto: (currency: string, amount_usd: number) =>
+    api.post("/wallets/deposit/crypto/", { currency, amount_usd }),
+  depositFiat: (amount_usd: number) =>
+    api.post("/wallets/deposit/fiat/", { amount_usd }),
+  withdraw: (currency: string, amount: number, destination_address?: string) =>
+    api.post("/wallets/withdraw/", { currency, amount, destination_address }),
+};
