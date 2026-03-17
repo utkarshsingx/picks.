@@ -71,9 +71,15 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
 
-      <div className="mb-6 flex gap-4">
+      <div className="mb-6 flex flex-wrap gap-4">
+        <Link href="/dashboard/games">
+          <Button>Games</Button>
+        </Link>
+        <Link href="/dashboard/sports">
+          <Button variant="outline">Sports</Button>
+        </Link>
         <Link href="/dashboard/deposit">
-          <Button>Deposit</Button>
+          <Button variant="outline">Deposit</Button>
         </Link>
         <Link href="/dashboard/withdraw">
           <Button variant="outline">Withdraw</Button>

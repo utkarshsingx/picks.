@@ -23,6 +23,18 @@ export function Header() {
                 Dashboard
               </Link>
               <Link
+                href="/dashboard/games"
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
+                Games
+              </Link>
+              <Link
+                href="/dashboard/sports"
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
+                Sports
+              </Link>
+              <Link
                 href="/settings/security"
                 className="text-sm text-muted-foreground hover:text-foreground"
               >

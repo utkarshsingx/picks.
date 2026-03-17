@@ -82,3 +82,72 @@ export const wallets = {
   withdraw: (currency: string, amount: number, destination_address?: string) =>
     api.post("/wallets/withdraw/", { currency, amount, destination_address }),
 };
+
+export const games = {
+  diceBet: (amount: number, currency: string, direction: "over" | "under", target: number) =>
+    api.post("/games/dice/bet/", { amount, currency, direction, target }),
+  minesStart: (amount: number, currency: string, mineCount?: number) =>
+    api.post("/games/mines/start/", { amount, currency, mine_count: mineCount ?? 5 }),
+  minesReveal: (betId: number, tileIndex: number) =>
+    api.post("/games/mines/reveal/", { bet_id: betId, tile_index: tileIndex }),
+  minesCashout: (betId: number) =>
+    api.post("/games/mines/cashout/", { bet_id: betId }),
+  plinkoBet: (amount: number, currency: string, risk: "low" | "medium" | "high") =>
+    api.post("/games/plinko/bet/", { amount, currency, risk }),
+  crashBet: (amount: number, currency: string, roundId: string) =>
+    api.post("/games/crash/bet/", { amount, currency, round_id: roundId }),
+  crashCashout: (betId: number, multiplier?: number) =>
+    api.post("/games/crash/cashout/", { bet_id: betId, multiplier }),
+  getCrashRounds: (limit?: number) =>
+    api.get("/games/crash/rounds/" + (limit ? `?limit=${limit}` : "")),
+  getCrashRound: (roundId: string) => api.get(`/games/crash/rounds/${roundId}/`),
+  getBets: (params?: Record<string, string | number> | string) => {
+    if (typeof params === "string") {
+      const url = new URL(params);
+      const path = url.pathname.replace(/^\/api/, "") + url.search;
+      return apiFetch(path || "/games/bets/");
+    }
+    const search =
+      params && Object.keys(params).length
+        ? "?" +
+          new URLSearchParams(
+            Object.fromEntries(
+              Object.entries(params)
+                .filter(([, v]) => v != null && v !== "")
+                .map(([k, v]) => [k, String(v)])
+            )
+          ).toString()
+        : "";
+    return apiFetch("/games/bets/" + search);
+  },
+};
+
+export const sports = {
+  getSports: () => api.get("/sports/"),
+  getEvents: (sportKey: string, includeOdds?: boolean) =>
+    api.get(
+      `/sports/${sportKey}/events/` +
+        (includeOdds ? "?include_odds=true" : "")
+    ),
+  getEventOdds: (sportKey: string, eventId: string) =>
+    api.get(`/sports/${sportKey}/events/${eventId}/odds/`),
+  placeBet: (params: {
+    amount: number;
+    currency: string;
+    event_id: string;
+    sport_key: string;
+    market_key: string;
+    outcome_name: string;
+    odds: number;
+    home_team?: string;
+    away_team?: string;
+    outcome_point?: number;
+  }) => api.post("/sports/bet/", params),
+  getBets: (params?: Record<string, string>) =>
+    apiFetch(
+      "/sports/bets/" +
+        (params && Object.keys(params).length
+          ? "?" + new URLSearchParams(params).toString()
+          : "")
+    ),
+};
