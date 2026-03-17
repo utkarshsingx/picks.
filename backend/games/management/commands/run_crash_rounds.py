@@ -23,6 +23,40 @@ def get_or_create_betting_round():
     return CrashRound.objects.filter(status=CrashRound.Status.BETTING).first()
 
 
+@database_sync_to_async
+def transition_round_to_running(round_obj, crash_point):
+    """Transition round to RUNNING and save."""
+    round_obj.status = CrashRound.Status.RUNNING
+    round_obj.crash_point = crash_point
+    round_obj.started_at = timezone.now()
+    round_obj.save()
+
+
+@database_sync_to_async
+def settle_pending_crash_bets(round_id):
+    """Mark all pending crash bets in round as LOST."""
+    from games.models import Bet
+    Bet.objects.filter(
+        game_type=Bet.GameType.CRASH,
+        status=Bet.Status.PENDING,
+        metadata__round_id=round_id,
+    ).update(status=Bet.Status.LOST)
+
+
+@database_sync_to_async
+def transition_round_to_crashed(round_obj):
+    """Transition round to CRASHED and save."""
+    round_obj.status = CrashRound.Status.CRASHED
+    round_obj.crashed_at = timezone.now()
+    round_obj.save()
+
+
+@database_sync_to_async
+def create_next_crash_round():
+    """Create next crash round."""
+    create_crash_round()
+
+
 class Command(BaseCommand):
     help = 'Run Crash game rounds (broadcasts multiplier via WebSocket)'
 
@@ -77,10 +111,7 @@ class Command(BaseCommand):
             round_obj.client_seed,
             round_obj.nonce,
         )
-        round_obj.status = CrashRound.Status.RUNNING
-        round_obj.crash_point = crash_point
-        round_obj.started_at = timezone.now()
-        round_obj.save()
+        await transition_round_to_running(round_obj, crash_point)
 
         await channel_layer.group_send(group, {
             'type': 'crash_round_started',
@@ -107,16 +138,9 @@ class Command(BaseCommand):
             })
 
         # Crashed - mark all pending bets in this round as LOST
-        from games.models import Bet
-        Bet.objects.filter(
-            game_type=Bet.GameType.CRASH,
-            status=Bet.Status.PENDING,
-            metadata__round_id=round_id,
-        ).update(status=Bet.Status.LOST)
+        await settle_pending_crash_bets(round_id)
 
-        round_obj.status = CrashRound.Status.CRASHED
-        round_obj.crashed_at = timezone.now()
-        round_obj.save()
+        await transition_round_to_crashed(round_obj)
 
         await channel_layer.group_send(group, {
             'type': 'crash_round_crashed',
@@ -126,4 +150,4 @@ class Command(BaseCommand):
         self.stdout.write(f'Round {round_id} CRASHED at {crash_point}x')
 
         # Create next round
-        create_crash_round()
+        await create_next_crash_round()
