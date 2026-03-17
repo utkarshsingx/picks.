@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useAuthStore } from "@/store/auth-store";
+import { refreshAccessToken } from "@/lib/api";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-const WS_BASE = API_URL.replace(/\/api\/?$/, "").replace(/^http/, "ws");
+const WS_URL =
+  process.env.NEXT_PUBLIC_WS_URL ||
+  API_URL.replace(/\/api\/?$/, "").replace(/^https?/, (m) => (m === "https" ? "wss" : "ws"));
 
 export interface CrashSocketState {
   multiplier: number;
@@ -27,15 +30,30 @@ export function useCrashSocket(roundId: string | null) {
   });
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const connectCountRef = useRef(0);
 
-  useEffect(() => {
-    if (!roundId || !token) return;
+  const connect = useCallback(() => {
+    if (!roundId) return;
 
-    const connect = () => {
-      const url = `${WS_BASE}/ws/crash/${roundId}/?token=${encodeURIComponent(token)}`;
+    const doConnect = async () => {
+      let authToken = token;
+      if (!authToken) {
+        authToken = await refreshAccessToken();
+      }
+      if (!authToken) return;
+
+      connectCountRef.current += 1;
+      const url = `${WS_URL}/ws/crash/${roundId}/?token=${encodeURIComponent(authToken)}`;
       const ws = new WebSocket(url);
 
+      const timeout = setTimeout(() => {
+        if (ws.readyState === WebSocket.CONNECTING) {
+          ws.close();
+        }
+      }, 8000);
+
       ws.onopen = () => {
+        clearTimeout(timeout);
         setState((s) => ({ ...s, connected: true, error: null }));
       };
 
@@ -79,9 +97,10 @@ export function useCrashSocket(roundId: string | null) {
       };
 
       ws.onclose = () => {
+        clearTimeout(timeout);
         setState((s) => {
           if (s.status !== "crashed") {
-            reconnectRef.current = setTimeout(connect, 2000);
+            reconnectRef.current = setTimeout(doConnect, 2000);
           }
           return { ...s, connected: false };
         });
@@ -95,6 +114,12 @@ export function useCrashSocket(roundId: string | null) {
       wsRef.current = ws;
     };
 
+    doConnect();
+  }, [roundId, token]);
+
+  useEffect(() => {
+    if (!roundId) return;
+
     connect();
 
     return () => {
@@ -104,11 +129,17 @@ export function useCrashSocket(roundId: string | null) {
         wsRef.current = null;
       }
     };
-  }, [roundId, token]);
+  }, [roundId, connect]);
+
+  const reconnect = useCallback(() => {
+    if (reconnectRef.current) clearTimeout(reconnectRef.current);
+    setState((s) => ({ ...s, error: null }));
+    connect();
+  }, [connect]);
 
   const updateRound = (roundId: string) => {
     setState((s) => ({ ...s, roundId, multiplier: 1, status: "betting", crashPoint: null }));
   };
 
-  return { ...state, updateRound };
+  return { ...state, reconnect, updateRound };
 }

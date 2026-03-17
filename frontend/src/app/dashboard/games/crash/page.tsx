@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth-store";
@@ -61,7 +61,7 @@ export default function CrashPage() {
     });
   }, [isAuthenticated, router]);
 
-  useEffect(() => {
+  const refetchRounds = useCallback(() => {
     games.getCrashRounds(10).then(async (res) => {
       if (res.ok) {
         const data = await res.json();
@@ -72,7 +72,19 @@ export default function CrashPage() {
         }
       }
     });
-  }, [lastResult, status]);
+  }, []);
+
+  useEffect(() => {
+    refetchRounds();
+  }, [lastResult, status, refetchRounds]);
+
+  // When round crashes, refetch after a short delay to pick up the new round
+  useEffect(() => {
+    if (status === "crashed") {
+      const t = setTimeout(refetchRounds, 400);
+      return () => clearTimeout(t);
+    }
+  }, [status, refetchRounds]);
 
   async function handleBet(e: React.FormEvent) {
     e.preventDefault();
@@ -206,8 +218,8 @@ export default function CrashPage() {
                 <Input
                   id="amount"
                   type="number"
-                  min="0.00000001"
-                  step="any"
+                  min="0"
+                  step="0.00000001"
                   placeholder="0.001"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}

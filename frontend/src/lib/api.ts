@@ -10,7 +10,7 @@ function getStoredRefreshToken(): string | null {
   return useAuthStore.getState().refreshToken;
 }
 
-async function refreshAccessToken(): Promise<string | null> {
+export async function refreshAccessToken(): Promise<string | null> {
   const refresh = getStoredRefreshToken();
   if (!refresh) return null;
   const res = await fetch(`${API_URL}/auth/token/refresh/`, {
