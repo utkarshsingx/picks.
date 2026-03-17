@@ -46,3 +46,11 @@ class TwoFactorVerifySerializer(serializers.Serializer):
 class TwoFactorDisableSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True)
     code = serializers.CharField(max_length=6, min_length=6)
+
+
+class TwoFactorVerifyLoginSerializer(serializers.Serializer):
+    """Serializer for 2FA verification at login. Accepts email, password, code."""
+
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
+    code = serializers.CharField(max_length=6, min_length=6)

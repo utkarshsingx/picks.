@@ -2,9 +2,18 @@ from django.contrib import admin
 from django.contrib import messages
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
+from kyc.models import KycDocument
 from wallets.models import Wallet
 
 from .models import User
+
+
+class KycDocumentInline(admin.TabularInline):
+    model = KycDocument
+    extra = 0
+    max_num = 0
+    readonly_fields = ('document_type', 'file', 'status', 'uploaded_at')
+    show_change_link = True
 
 
 class WalletInline(admin.TabularInline):
@@ -22,7 +31,7 @@ class UserAdmin(BaseUserAdmin):
     list_filter = ('is_verified', 'kyc_status', 'two_factor_enabled', 'is_staff', 'is_active')
     search_fields = ('email', 'username')
     ordering = ('-created_at',)
-    inlines = [WalletInline]
+    inlines = [WalletInline, KycDocumentInline]
     fieldsets = BaseUserAdmin.fieldsets + (
         (None, {'fields': ('is_verified', 'kyc_status', 'vip_level', 'two_factor_enabled', 'created_at', 'updated_at')}),
     )

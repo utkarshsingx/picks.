@@ -35,6 +35,12 @@ export function Header() {
                 Sports
               </Link>
               <Link
+                href="/settings/kyc"
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
+                Verification
+              </Link>
+              <Link
                 href="/settings/security"
                 className="text-sm text-muted-foreground hover:text-foreground"
               >

@@ -122,6 +122,27 @@ export const games = {
   },
 };
 
+export const kyc = {
+  getDocuments: () => api.get("/kyc/documents/"),
+  getStatus: () => api.get("/kyc/status/"),
+  uploadDocument: (file: File, documentType: string) => {
+    const formData = new FormData();
+    formData.append("document_type", documentType);
+    formData.append("file", file);
+    const token = getStoredToken();
+    const headers: Record<string, string> = {};
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+    return fetch(
+      `${API_URL}/kyc/documents/`,
+      {
+        method: "POST",
+        headers,
+        body: formData,
+      }
+    );
+  },
+};
+
 export const sports = {
   getSports: () => api.get("/sports/"),
   getEvents: (sportKey: string, includeOdds?: boolean) =>

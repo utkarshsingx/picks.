@@ -20,5 +20,6 @@ urlpatterns = [
     path('me/', views.MeView.as_view()),
     path('2fa/enable/', views.two_factor_enable),
     path('2fa/verify/', views.two_factor_verify),
+    path('2fa/verify-login/', views.two_factor_verify_login),
     path('2fa/disable/', views.two_factor_disable),
 ]

@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'games',
     'sports',
     'channels',
+    'kyc',
 ]
 
 MIDDLEWARE = [
@@ -105,7 +106,13 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# KYC
+KYC_MAX_FILE_SIZE_MB = float(os.environ.get('KYC_MAX_FILE_SIZE_MB', 5))
 
 # CORS
 CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:3000').split(',')
@@ -197,6 +204,7 @@ Use the **Authorize** button in Swagger UI to set your token for all requests.
         {'name': 'wallets', 'description': 'Wallet balances, deposits, withdrawals, transactions'},
         {'name': 'games', 'description': 'Casino games: Dice, Mines, Plinko, Crash'},
         {'name': 'sports', 'description': 'Live sports betting: events, odds, place bet'},
+        {'name': 'kyc', 'description': 'KYC document upload and verification status'},
     ],
     'SECURITY': [{'BearerAuth': []}],
     'APPEND_COMPONENTS': {

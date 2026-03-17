@@ -8,6 +8,8 @@ from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 
+from users.models import User
+
 from .models import Currency, Transaction, Wallet
 from .serializers import (
     DepositCryptoSerializer,
@@ -199,6 +201,15 @@ def withdraw(request):
     if amount_usd_approx < min_usd:
         return Response(
             {'detail': f'Minimum withdrawal is ${min_usd} USD equivalent.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # KYC required for large withdrawals
+    if amount_usd_approx > limit_usd and request.user.kyc_status != User.KycStatus.APPROVED:
+        return Response(
+            {
+                'detail': f'KYC verification required for withdrawals above ${limit_usd} USD. Please complete verification in Settings.',
+            },
             status=status.HTTP_400_BAD_REQUEST,
         )
 

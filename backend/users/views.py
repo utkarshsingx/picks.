@@ -20,6 +20,7 @@ from .serializers import (
     TwoFactorEnableSerializer,
     TwoFactorVerifySerializer,
     TwoFactorDisableSerializer,
+    TwoFactorVerifyLoginSerializer,
 )
 
 
@@ -132,6 +133,41 @@ def two_factor_verify(request):
     user.two_factor_enabled = True
     user.save(update_fields=['two_factor_enabled'])
     return Response({'detail': '2FA enabled successfully.'})
+
+
+@extend_schema(
+    tags=['auth'],
+    request=TwoFactorVerifyLoginSerializer,
+    responses={
+        200: {'type': 'object', 'properties': {'access': {'type': 'string'}, 'refresh': {'type': 'string'}, 'user': {'type': 'object'}}},
+        400: {'description': 'Invalid credentials or code'},
+    },
+)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def two_factor_verify_login(request):
+    """Verify 2FA code and issue JWT tokens. Called after login returns requires_2fa."""
+    serializer = TwoFactorVerifyLoginSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    from django.contrib.auth import authenticate
+    user = authenticate(
+        request,
+        username=serializer.validated_data['email'],
+        password=serializer.validated_data['password'],
+    )
+    if not user:
+        return Response({'detail': 'Invalid credentials.'}, status=status.HTTP_400_BAD_REQUEST)
+    if not user.two_factor_enabled or not user.totp_secret:
+        return Response({'detail': '2FA is not enabled for this account.'}, status=status.HTTP_400_BAD_REQUEST)
+    totp = pyotp.TOTP(user.totp_secret)
+    if not totp.verify(serializer.validated_data['code'], valid_window=1):
+        return Response({'code': ['Invalid code.']}, status=status.HTTP_400_BAD_REQUEST)
+    tokens = get_tokens_for_user(user)
+    return Response({
+        'access': tokens['access'],
+        'refresh': tokens['refresh'],
+        'user': UserSerializer(user).data,
+    })
 
 
 @extend_schema(tags=['auth'], request=TwoFactorDisableSerializer, responses={200: {'description': '2FA disabled'}, 400: {'description': 'Invalid password or code'}})

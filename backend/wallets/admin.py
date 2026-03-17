@@ -74,7 +74,7 @@ class PendingWithdrawalAdmin(admin.ModelAdmin):
     currency.admin_order_field = 'wallet__currency__code'
 
     def destination(self, obj):
-        return obj.reference_id or '-'
+        return (obj.metadata or {}).get('destination_address') or obj.reference_id or '-'
 
     destination.short_description = 'Destination'
 
