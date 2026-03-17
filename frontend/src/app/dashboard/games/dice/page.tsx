@@ -132,7 +132,7 @@ export default function DicePage() {
               <Input
                 id="amount"
                 type="number"
-                min="0.00000001"
+                min="0"
                 step="any"
                 placeholder="0.001"
                 value={amount}

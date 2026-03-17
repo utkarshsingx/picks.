@@ -28,9 +28,9 @@ def credit_wallet(
     reference_id: str | None = None,
     metadata: dict | None = None,
 ) -> Transaction:
-    """Atomically credit wallet. Amount must be positive."""
-    if amount <= 0:
-        raise ValueError('Credit amount must be positive')
+    """Atomically credit wallet. Amount must be non-negative."""
+    if amount < 0:
+        raise ValueError('Credit amount must be non-negative')
     with transaction.atomic():
         wallet = get_or_create_wallet(user_id, currency_code)
         wallet = Wallet.objects.select_for_update().get(pk=wallet.pk)
@@ -58,8 +58,8 @@ def debit_wallet(
     allow_negative: bool = False,
 ) -> Transaction:
     """Atomically debit wallet. Raises ValueError if insufficient balance (unless allow_negative)."""
-    if amount <= 0:
-        raise ValueError('Debit amount must be positive')
+    if amount < 0:
+        raise ValueError('Debit amount must be non-negative')
     with transaction.atomic():
         wallet = get_or_create_wallet(user_id, currency_code)
         wallet = Wallet.objects.select_for_update().get(pk=wallet.pk)

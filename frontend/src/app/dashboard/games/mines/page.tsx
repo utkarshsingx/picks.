@@ -182,7 +182,7 @@ export default function MinesPage() {
                 <Input
                   id="amount"
                   type="number"
-                  min="0.00000001"
+                  min="0"
                   step="any"
                   placeholder="0.001"
                   value={amount}
@@ -197,8 +197,11 @@ export default function MinesPage() {
                   type="number"
                   min="1"
                   max="24"
-                  value={mineCount}
-                  onChange={(e) => setMineCount(parseInt(e.target.value, 10))}
+                  value={Number.isNaN(mineCount) ? "" : mineCount}
+                  onChange={(e) => {
+                    const v = parseInt(e.target.value, 10);
+                    setMineCount(Number.isNaN(v) ? 5 : Math.min(24, Math.max(1, v)));
+                  }}
                 />
               </div>
               <Button type="submit" disabled={loading || !amount} className="w-full">

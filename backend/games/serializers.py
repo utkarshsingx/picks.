@@ -16,14 +16,14 @@ class BetSerializer(serializers.ModelSerializer):
 
 
 class DiceBetSerializer(serializers.Serializer):
-    amount = serializers.DecimalField(max_digits=20, decimal_places=8, min_value=Decimal('0.00000001'))
+    amount = serializers.DecimalField(max_digits=20, decimal_places=8, min_value=Decimal('0'))
     currency = serializers.ChoiceField(choices=['BTC', 'ETH', 'USDT', 'USD'])
     direction = serializers.ChoiceField(choices=['over', 'under'])
     target = serializers.FloatField(min_value=1, max_value=99)
 
 
 class MinesStartSerializer(serializers.Serializer):
-    amount = serializers.DecimalField(max_digits=20, decimal_places=8, min_value=Decimal('0.00000001'))
+    amount = serializers.DecimalField(max_digits=20, decimal_places=8, min_value=Decimal('0'))
     currency = serializers.ChoiceField(choices=['BTC', 'ETH', 'USDT', 'USD'])
     mine_count = serializers.IntegerField(min_value=1, max_value=24, default=5)
 
@@ -38,13 +38,13 @@ class MinesCashoutSerializer(serializers.Serializer):
 
 
 class PlinkoBetSerializer(serializers.Serializer):
-    amount = serializers.DecimalField(max_digits=20, decimal_places=8, min_value=Decimal('0.00000001'))
+    amount = serializers.DecimalField(max_digits=20, decimal_places=8, min_value=Decimal('0'))
     currency = serializers.ChoiceField(choices=['BTC', 'ETH', 'USDT', 'USD'])
     risk = serializers.ChoiceField(choices=['low', 'medium', 'high'])
 
 
 class CrashBetSerializer(serializers.Serializer):
-    amount = serializers.DecimalField(max_digits=20, decimal_places=8, min_value=Decimal('0.00000001'))
+    amount = serializers.DecimalField(max_digits=20, decimal_places=8, min_value=Decimal('0'))
     currency = serializers.ChoiceField(choices=['BTC', 'ETH', 'USDT', 'USD'])
     round_id = serializers.UUIDField()
 
