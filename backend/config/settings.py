@@ -20,6 +20,7 @@ DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -32,6 +33,8 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'users',
     'wallets',
+    'games',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -64,6 +67,17 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
+ASGI_APPLICATION = 'config.asgi.application'
+
+# Django Channels (set USE_REDIS=true for production; InMemory for single-process dev)
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+_use_redis = os.environ.get('USE_REDIS', 'false').lower() == 'true'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer' if _use_redis else 'channels.layers.InMemoryChannelLayer',
+        **({'CONFIG': {'hosts': [REDIS_URL]}} if _use_redis else {}),
+    },
+}
 
 _db_url = os.environ.get('DATABASE_URL')
 DATABASES = {
@@ -131,6 +145,16 @@ FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
 WITHDRAWAL_AUTO_APPROVE_LIMIT_USD = float(os.environ.get('WITHDRAWAL_AUTO_APPROVE_LIMIT_USD', 500))
 WITHDRAWAL_MIN_AMOUNT_USD = float(os.environ.get('WITHDRAWAL_MIN_AMOUNT_USD', 10))
 
+# Games
+GAMES_HOUSE_EDGE = float(os.environ.get('GAMES_HOUSE_EDGE', 0.01))
+CRASH_ROUND_DURATION_SECONDS = int(os.environ.get('CRASH_ROUND_DURATION_SECONDS', 10))
+
+# Sports (The Odds API)
+ODDS_API_KEY = os.environ.get('ODDS_API_KEY')
+ODDS_API_REGIONS = os.environ.get('ODDS_API_REGIONS', 'us').split(',')
+ODDS_API_MARKETS = os.environ.get('ODDS_API_MARKETS', 'h2h,spreads,totals').split(',')
+SPORTS_HOUSE_EDGE = float(os.environ.get('SPORTS_HOUSE_EDGE', 0.05))
+
 # Payment gateways (optional)
 NOWPAYMENTS_API_KEY = os.environ.get('NOWPAYMENTS_API_KEY')
 NOWPAYMENTS_IPN_SECRET = os.environ.get('NOWPAYMENTS_IPN_SECRET')
@@ -170,6 +194,8 @@ Use the **Authorize** button in Swagger UI to set your token for all requests.
     'TAGS': [
         {'name': 'auth', 'description': 'Authentication & identity management'},
         {'name': 'wallets', 'description': 'Wallet balances, deposits, withdrawals, transactions'},
+        {'name': 'games', 'description': 'Casino games: Dice, Mines, Plinko, Crash'},
+        {'name': 'sports', 'description': 'Live sports betting: events, odds, place bet'},
     ],
     'SECURITY': [{'BearerAuth': []}],
     'APPEND_COMPONENTS': {
