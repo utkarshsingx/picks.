@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'users',
     'wallets',
     'games',
+    'sports',
     'channels',
 ]
 

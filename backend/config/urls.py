@@ -17,6 +17,7 @@ urlpatterns = [
     path('api/auth/', include('users.urls')),
     path('api/wallets/', include('wallets.urls')),
     path('api/games/', include('games.urls')),
+    path('api/sports/', include('sports.urls')),
     path('api/webhooks/nowpayments/', nowpayments_webhook),
     path('api/webhooks/stripe/', stripe_webhook),
     # API documentation
