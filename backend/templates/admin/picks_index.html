@@ -1,0 +1,33 @@
+{% extends "admin/index.html" %}
+{% block content %}
+<div id="picks-dashboard" style="margin-bottom: 2rem;">
+  <h2>Quick Overview</h2>
+  <div style="display: flex; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1rem;">
+    <div style="padding: 1rem; background: #f8f9fa; border-radius: 4px; min-width: 200px;">
+      <strong>Pending Withdrawals</strong>
+      <p style="margin: 0.5rem 0 0; font-size: 1.5rem;">
+        <a href="{{ pending_withdrawals_url }}">{{ pending_withdrawals_count }}</a>
+      </p>
+    </div>
+    <div style="padding: 1rem; background: #f8f9fa; border-radius: 4px; min-width: 200px;">
+      <strong>Quick Links</strong>
+      <p style="margin: 0.5rem 0 0;">
+        <a href="{{ users_url }}">Users</a> |
+        <a href="{{ transactions_url }}">Transactions</a> |
+        <a href="{{ bets_url }}">Bets</a>
+      </p>
+    </div>
+  </div>
+  {% if recent_users %}
+  <div style="margin-top: 1rem;">
+    <h3>Recent Registrations</h3>
+    <ul style="margin: 0; padding-left: 1.5rem;">
+      {% for user in recent_users %}
+      <li><a href="{% url 'admin:users_user_change' user.pk %}">{{ user.email }}</a> ({{ user.created_at|date:"M d, Y H:i" }})</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+</div>
+{{ block.super }}
+{% endblock %}

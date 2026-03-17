@@ -84,6 +84,15 @@ class Transaction(models.Model):
         return f"{self.wallet} {self.type} {self.amount} ({self.status})"
 
 
+class PendingWithdrawal(Transaction):
+    """Proxy for pending withdrawal transactions. Admin-only view."""
+
+    class Meta:
+        proxy = True
+        verbose_name = 'Pending Withdrawal'
+        verbose_name_plural = 'Pending Withdrawals'
+
+
 class PendingDeposit(models.Model):
     """Tracks deposits awaiting webhook confirmation. Used for idempotency."""
 
