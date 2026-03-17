@@ -47,8 +47,9 @@ def verify_email_token(token):
 
 
 @extend_schema(
+    tags=['auth'],
     request=RegisterSerializer,
-    responses={201: UserSerializer},
+    responses={201: UserSerializer, 400: {'description': 'Validation error'}},
     examples=[
         OpenApiExample('Register', value={'email': 'user@example.com', 'password': 'SecurePass123!', 'password_confirm': 'SecurePass123!'}, request_only=True),
     ],
@@ -72,7 +73,14 @@ def register(request):
     return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
 
 
-@extend_schema(responses={200: None})
+@extend_schema(
+    tags=['auth'],
+    request=None,
+    responses={
+        200: {'type': 'object', 'properties': {'detail': {'type': 'string'}}, 'description': 'Email verified'},
+        400: {'type': 'object', 'properties': {'detail': {'type': 'string'}}, 'description': 'Invalid or expired token'},
+    },
+)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def verify_email(request, token):
@@ -85,8 +93,9 @@ def verify_email(request, token):
 
 
 @extend_schema(
+    tags=['auth'],
     request=TwoFactorEnableSerializer,
-    responses={200: {'type': 'object', 'properties': {'secret': {'type': 'string'}, 'qr_data': {'type': 'string'}, 'provisioning_uri': {'type': 'string'}}}},
+    responses={200: {'type': 'object', 'properties': {'secret': {'type': 'string'}, 'provisioning_uri': {'type': 'string'}}}, 400: {'description': 'Invalid password or 2FA already enabled'}},
 )
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -108,7 +117,7 @@ def two_factor_enable(request):
     })
 
 
-@extend_schema(request=TwoFactorVerifySerializer, responses={200: None})
+@extend_schema(tags=['auth'], request=TwoFactorVerifySerializer, responses={200: {'description': '2FA enabled'}, 400: {'description': 'Invalid code'}})
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def two_factor_verify(request):
@@ -125,7 +134,7 @@ def two_factor_verify(request):
     return Response({'detail': '2FA enabled successfully.'})
 
 
-@extend_schema(request=TwoFactorDisableSerializer, responses={200: None})
+@extend_schema(tags=['auth'], request=TwoFactorDisableSerializer, responses={200: {'description': '2FA disabled'}, 400: {'description': 'Invalid password or code'}})
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def two_factor_disable(request):
@@ -151,8 +160,9 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
     @extend_schema(
-        request={'type': 'object', 'properties': {'email': {'type': 'string'}, 'password': {'type': 'string'}}},
-        responses={200: {'type': 'object', 'properties': {'access': {'type': 'string'}, 'refresh': {'type': 'string'}, 'user': {'type': 'object'}}}},
+        tags=['auth'],
+        request={'type': 'object', 'properties': {'email': {'type': 'string'}, 'password': {'type': 'string'}}, 'required': ['email', 'password']},
+        responses={200: {'type': 'object', 'properties': {'access': {'type': 'string'}, 'refresh': {'type': 'string'}, 'user': {'type': 'object'}}}, 401: {'description': 'Invalid credentials'}},
     )
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
@@ -170,6 +180,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         return response
 
 
+@extend_schema(tags=['auth'], responses={200: UserSerializer})
 class MeView(generics.RetrieveAPIView):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
